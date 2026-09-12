@@ -6,7 +6,7 @@ services:
     environment:
       POSTGRES_DB: "mail-sentinel"
       POSTGRES_USER: "postgres"
-      POSTGRES_PASSWORD: "Pranjal##123"
+      POSTGRES_PASSWORD: "Your DB PASSWORD"
     ports:
       - "5432:5432"
     volumes:
