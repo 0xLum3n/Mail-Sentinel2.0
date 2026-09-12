@@ -1,1088 +1,517 @@
-Mail Sentinel 2.0
+Yes — the backend is ready at the current build.
 
-Mail Sentinel 2.0 is an AI-powered email security and SOC platform for phishing detection, email forensics, IOC extraction, threat-intelligence enrichment, AI-assisted analysis, investigation management, and analyst assistance.
+[Download **Mail Sentinel 2.0 Backend**](sandbox:/mnt/data/mail-sentinel-backend-current.zip)
 
-The repository contains both the Next.js frontend and FastAPI backend.
+And the currently connected frontend is here:
 
-1. What is included
+[Download **Mail Sentinel 2.0 Frontend**](sandbox:/mnt/data/mail-sentinel-frontend-current.zip)
 
-Frontend
+## Full technology installation
 
-Next.js 16.3.3
+The project currently uses:
 
-React 19
+**Frontend**
 
-TypeScript 5.7.3
+* Next.js 16.3.3
+* React 19
+* TypeScript 5.7.3
+* Tailwind CSS 4
+* shadcn/Base UI
+* Vercel AI SDK
 
-Tailwind CSS 4
+**Backend**
 
-shadcn/Base UI components
+* Python
+* FastAPI
+* Uvicorn
+* PostgreSQL
+* SQLAlchemy 2.x
+* Alembic
+* Redis
+* Pydantic Settings
+* JWT authentication
+* Passlib/Bcrypt
+* HTTPX
+* AI provider API
+* VirusTotal / AbuseIPDB / urlscan integrations
 
-Lucide icons
+For development, I recommend running **PostgreSQL and Redis through Docker**, rather than installing them directly into Windows.
 
-Vercel AI SDK packages
+---
 
-Authentication-aware frontend API client
+# 1. Install the system prerequisites
 
-AI SOC Analyst drawer
+On Windows, install:
 
-Dashboard / investigations / email-analysis UI
+### Python
 
-Backend
-
-FastAPI
-
-Uvicorn
-
-PostgreSQL
-
-SQLAlchemy 2.x async ORM
-
-Psycopg 3
-
-Alembic migrations
-
-Redis
-
-Pydantic Settings
-
-JWT access tokens
-
-Rotating opaque refresh tokens stored as hashes
-
-Passlib/Bcrypt password hashing
-
-RFC822 email parsing
-
-Security header analysis
-
-IOC extraction
-
-Explainable deterministic risk scoring
-
-Threat-intelligence provider abstraction
-
-VirusTotal integration
-
-AbuseIPDB integration
-
-urlscan.io integration
-
-Redis TI caching
-
-AI analysis pipeline
-
-AI SOC Analyst investigation-aware chat API
-
-2. High-level architecture
-
-                         Browser
-                            |
-                            v
-                 +----------------------+
-                 | Next.js Frontend     |
-                 | http://localhost:3000|
-                 +----------+-----------+
-                            |
-                      REST / JSON
-                            |
-                            v
-                 +----------------------+
-                 | FastAPI Backend      |
-                 | http://localhost:8000|
-                 +----------+-----------+
-                            |
-          +-----------------+------------------+
-          |                 |                  |
-          v                 v                  v
-   +-------------+   +-------------+   +----------------+
-   | PostgreSQL  |   |    Redis    |   | External APIs  |
-   | :5432       |   | :6379       |   | AI / TI        |
-   +-------------+   +-------------+   +----------------+
-
-Email analysis flow
-
-Upload .eml / .txt / .nine
-            |
-            v
-       Email parser
-            |
-            v
-   Deterministic analysis
-   - SPF / DKIM / DMARC
-   - Reply-To anomalies
-   - Received IPs
-   - URLs / domains / hashes
-   - Social-engineering signals
-   - Attachment metadata
-            |
-            v
-   Threat intelligence
-   - VirusTotal
-   - AbuseIPDB
-   - urlscan
-   - Redis cache
-            |
-            v
-      Structured evidence
-            |
-            v
-        AI analysis
-            |
-            v
-     Evidence fusion
-            |
-            v
-        Investigation
-            |
-            v
-      AI SOC Analyst
-
-Threat-intelligence and AI results are treated as evidence. Provider failures and conflicting provider results must not automatically turn an email into a malicious verdict.
-
-3. Repository structure
-
-MailSentinel2.0 Project/
-|
-├── Backend/
-│   ├── app/
-│   │   ├── api/
-│   │   ├── ai/
-│   │   ├── core/
-│   │   ├── db/
-│   │   ├── models/
-│   │   ├── schemas/
-│   │   ├── security/
-│   │   ├── services/
-│   │   ├── threat_intel/
-│   │   ├── workers/
-│   │   └── main.py
-│   ├── alembic/
-│   │   └── versions/
-│   ├── tests/
-│   ├── scripts/
-│   ├── .env.example
-│   ├── alembic.ini
-│   ├── requirements.txt
-│   └── README.md
-│
-├── Frontend/
-│   ├── app/
-│   ├── components/
-│   ├── lib/
-│   ├── public/
-│   ├── .env.example
-│   ├── package.json
-│   ├── pnpm-lock.yaml
-│   └── next.config.mjs
-│
-├── docker-compose.yml   # optional; review secrets before using/committing
-└── README.md
-
-4. Prerequisites
-
-The instructions below assume Windows + PowerShell, because that is the environment used during development. Linux/macOS work with the same Python/Node commands after adapting activation commands and service installation.
-
-Install:
-
-Git
-
-Python 3.12 recommended
-
-Node.js 22 LTS recommended
-
-pnpm
-
-PostgreSQL 16+ (PostgreSQL 18 also works in the tested environment)
-
-Redis 7+ or a Redis-compatible local service
-
-An AI API key for AI analysis/chat
-
-Optional threat-intelligence API keys for VirusTotal, AbuseIPDB and urlscan
-
-Check versions
-
-python --version
-node --version
-npm --version
-pnpm --version
-psql --version
-git --version
-docker --version
-
-Python 3.12 is the recommended development target. Python 3.14 was successfully used during local testing, but Python 3.12 is preferred for maximum package compatibility.
-
-5. Clone the project
-
-git clone <YOUR_GITHUB_REPOSITORY_URL>
-cd "MailSentinel2.0 Project"
-
-The exact path/name does not matter; just make sure the Backend and Frontend directories remain siblings.
-
-6. IMPORTANT: protect secrets before pushing to GitHub
-
-Never commit credentials.
-
-The following must stay local:
-
-Backend/.env
-Frontend/.env.local
-
-The backend .gitignore and frontend .gitignore already ignore local environment files.
-
-Before pushing the repository, inspect docker-compose.yml. If it contains a real PostgreSQL password, AI key, Redis password, or any other secret, remove it and replace it with an environment-variable reference or a placeholder.
-
-If a real password/key has already been committed to Git history, treat it as exposed and rotate it.
-
-7. PostgreSQL setup
-
-Option A — Use an existing local PostgreSQL installation
-
-This matches the setup used during development.
-
-Open pgAdmin and create a separate database for Mail Sentinel:
-
-Database: mail_sentinel
-Owner:    postgres
-
-Do not use the default postgres database as the application database.
-
-Verify PostgreSQL is running:
-
-Get-Service *postgres*
-
-Then verify the port:
-
-Test-NetConnection localhost -Port 5432
-
-Expected:
-
-TcpTestSucceeded : True
-
-If your existing database is named differently
-
-For example, if you create mail-sentinel instead of mail_sentinel, put that exact name in Backend/.env.
-
-Option B — Run PostgreSQL with Docker
-
-If PostgreSQL is not installed locally, use a PostgreSQL container instead.
-
-Example:
-
-docker run --name mail-sentinel-postgres `
-  -e POSTGRES_DB=mail_sentinel `
-  -e POSTGRES_USER=postgres `
-  -e POSTGRES_PASSWORD=CHANGE_THIS_PASSWORD `
-  -p 5432:5432 `
-  -d postgres:16
-
-Then make the same values available in Backend/.env.
-
-Do not run two different PostgreSQL servers bound to port 5432 at the same time.
-
-8. Redis setup
-
-Redis is used for threat-intelligence caching and backend runtime support.
-
-Verify it is reachable:
-
-Test-NetConnection localhost -Port 6379
-
-Expected:
-
-TcpTestSucceeded : True
-
-Docker Redis (recommended for Windows if Redis is not already installed)
-
-docker run --name mail-sentinel-redis -p 6379:6379 -d redis:7
+Use Python **3.12**.
 
 Check:
 
+```powershell
+python --version
+```
+
+You want something like:
+
+```text
+Python 3.12.x
+```
+
+### Node.js
+
+Install Node.js **22 LTS**.
+
+Check:
+
+```powershell
+node --version
+npm --version
+```
+
+### pnpm
+
+The frontend is using pnpm and already contains `pnpm-lock.yaml`.
+
+Install:
+
+```powershell
+npm install -g pnpm
+```
+
+Check:
+
+```powershell
+pnpm --version
+```
+
+### Docker Desktop
+
+Install Docker Desktop and make sure it is running.
+
+Check:
+
+```powershell
+docker --version
+docker compose version
+```
+
+---
+
+# 2. Extract the project
+
+I recommend creating:
+
+```text
+mail-sentinel/
+├── frontend/
+└── backend/
+```
+
+Put the frontend ZIP contents inside `frontend`.
+
+Put the backend ZIP contents inside `backend`.
+
+The backend ZIP is already correctly rooted, so you should get:
+
+```text
+backend/
+├── app/
+├── alembic/
+├── tests/
+├── requirements.txt
+├── .env.example
+└── alembic.ini
+```
+
+---
+
+# 3. Start PostgreSQL and Redis
+
+From the project root, create a file:
+
+```text
+docker-compose.yml
+```
+
+Use:
+
+```yaml
+services:
+  postgres:
+    image: postgres:16
+    container_name: mail-sentinel-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: mail_sentinel
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - mail_sentinel_postgres:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    container_name: mail-sentinel-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - mail_sentinel_redis:/data
+
+volumes:
+  mail_sentinel_postgres:
+  mail_sentinel_redis:
+```
+
+Then:
+
+```powershell
+docker compose up -d
+```
+
+Check:
+
+```powershell
 docker ps
+```
 
-If Redis is already running on Windows, do not start a second Redis service on the same port.
+You should see both:
 
-9. Backend setup
+```text
+mail-sentinel-postgres
+mail-sentinel-redis
+```
 
-Open a terminal at the repository root and enter the backend:
+---
 
-cd Backend
+# 4. Install the backend
 
-Create the Python virtual environment
+Go into the backend:
 
-python -m venv venv
+```powershell
+cd backend
+```
+
+Create a virtual environment:
+
+```powershell
+python -m venv .venv
+```
 
 Activate it:
 
-venv\Scripts\Activate.ps1
+```powershell
+.venv\Scripts\Activate.ps1
+```
 
-If PowerShell blocks activation for this session:
+If PowerShell blocks activation, run:
 
+```powershell
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-venv\Scripts\Activate.ps1
+```
 
-You should now see (venv) in the terminal prompt.
+then:
 
-Install backend dependencies
+```powershell
+.venv\Scripts\Activate.ps1
+```
 
+Upgrade pip:
+
+```powershell
 python -m pip install --upgrade pip
+```
+
+Install everything:
+
+```powershell
 pip install -r requirements.txt
+```
 
-The test suite uses pytest-asyncio. If it is not already listed in your checked-out requirements.txt, install it explicitly:
+That installs the backend Python stack already defined by the project:
 
-pip install pytest-asyncio
+```text
+fastapi
+uvicorn
+sqlalchemy
+psycopg
+alembic
+redis
+pydantic-settings
+python-dotenv
+python-jose
+passlib
+email-validator
+python-multipart
+pytest
+httpx
+```
 
-Verify dependency consistency
+---
 
-pip check
+# 5. Configure backend environment
 
-Expected:
+Copy:
 
-No broken requirements found.
-
-10. Backend environment configuration
-
-Copy the example file:
-
+```powershell
 copy .env.example .env
+```
 
-Open it:
+Open:
 
-notepad .env
+```text
+backend/.env
+```
 
-Use values appropriate for your machine.
+At minimum, set:
 
-A practical development configuration is:
+```env
+SECRET_KEY=put-a-long-random-secret-here
 
-# Application
-APP_NAME=Mail Sentinel API
-APP_ENV=development
-DEBUG=true
-API_V1_PREFIX=/api/v1
-
-# Security
-SECRET_KEY=REPLACE_WITH_A_LONG_RANDOM_SECRET
-ACCESS_TOKEN_EXPIRE_MINUTES=30
-REFRESH_TOKEN_EXPIRE_DAYS=14
-
-# PostgreSQL
 POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
 POSTGRES_DB=mail_sentinel
 POSTGRES_USER=postgres
-POSTGRES_PASSWORD=REPLACE_WITH_YOUR_POSTGRES_PASSWORD
+POSTGRES_PASSWORD=postgres
 
-# Redis
 REDIS_HOST=localhost
 REDIS_PORT=6379
 REDIS_DB=0
 REDIS_PASSWORD=
 
-# CORS
 CORS_ORIGINS=http://localhost:3000
+```
 
-# AI
+For the AI features:
+
+```env
 AI_PROVIDER=openai
-AI_MODEL=REPLACE_WITH_YOUR_MODEL
-AI_API_KEY=REPLACE_WITH_YOUR_AI_API_KEY
+AI_MODEL=your-model-name
+AI_API_KEY=your-api-key
 AI_BASE_URL=https://api.openai.com/v1
-AI_TIMEOUT_SECONDS=30
+```
 
-# Threat intelligence (optional)
+Threat-intelligence providers are optional:
+
+```env
 VIRUSTOTAL_API_KEY=
 ABUSEIPDB_API_KEY=
 URLSCAN_API_KEY=
-THREAT_INTEL_TIMEOUT_SECONDS=8
-THREAT_INTEL_CACHE_TTL_SECONDS=3600
+```
 
-Generate a strong secret key
+You can start the application without those keys; those integrations simply won't have external reputation data available.
 
+---
+
+# 6. Generate a secure SECRET_KEY
+
+Don't use the example value in production.
+
+Generate one with Python:
+
+```powershell
 python -c "import secrets; print(secrets.token_urlsafe(64))"
+```
 
-Copy the output into SECRET_KEY.
+Put the resulting value into:
 
-API key behavior
+```env
+SECRET_KEY=...
+```
 
-AI keys are required only if you want AI analysis and SOC Analyst responses.
+---
 
-Threat-intelligence keys are optional. The backend is designed to continue analysing an email if a provider is unavailable, unconfigured, times out, or returns unknown evidence.
+# 7. Run the database migrations
 
-11. Database migrations
+Still inside `backend` with `.venv` active:
 
-After PostgreSQL is running and Backend/.env is correct:
-
+```powershell
 alembic upgrade head
+```
 
-Successful migration means the Mail Sentinel database schema has been created.
+This creates the Mail Sentinel database schema.
 
-Windows + Psycopg note
+---
 
-The backend uses async SQLAlchemy/Psycopg. The Alembic environment contains a Windows selector-event-loop workaround so async PostgreSQL connections work correctly on Windows.
+# 8. Start the FastAPI backend
 
-Do not remove the selector-event-loop configuration from Backend/alembic/env.py when working on Windows unless you have a tested replacement.
+Run:
 
-12. Run the backend
+```powershell
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
 
-From Backend with the virtual environment active:
+Backend:
 
-python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-
-Backend URL:
-
+```text
 http://localhost:8000
+```
 
-Swagger/OpenAPI:
+FastAPI documentation:
 
+```text
 http://localhost:8000/docs
+```
 
-ReDoc:
+Health check:
 
-http://localhost:8000/redoc
-
-13. Backend health checks
-
-Liveness
-
-Open:
-
+```text
 http://localhost:8000/api/v1/health/live
+```
 
-Expected:
+Readiness check:
 
-{"status":"ok"}
-
-Readiness
-
-Open:
-
+```text
 http://localhost:8000/api/v1/health/ready
+```
 
-Expected structure:
+Keep this terminal running.
 
-{
-  "status": "ok",
-  "checks": {
-    "postgresql": "ok",
-    "redis": "ok"
-  }
-}
+---
 
-The readiness endpoint is the best quick test that FastAPI, PostgreSQL and Redis are communicating.
+# 9. Install the frontend
 
-14. Backend tests
+Open a **new PowerShell terminal**.
 
-Run the complete unit suite from Backend:
+Go to:
 
-python -m pytest
+```powershell
+cd frontend
+```
 
-At the point the system was validated during development, the suite contained 10 unit tests and passed:
+Install the exact dependencies from the lockfile:
 
-10 passed
-
-If pytest says:
-
-async def functions are not natively supported
-
-or shows:
-
-PytestUnknownMarkWarning: Unknown pytest.mark.asyncio
-
-install:
-
-pip install pytest-asyncio
-
-and rerun:
-
-python -m pytest
-
-15. Frontend setup
-
-Open a new terminal and go to the frontend:
-
-cd Frontend
-
-Install Node dependencies:
-
+```powershell
 pnpm install
-
-The repository contains pnpm-lock.yaml; prefer pnpm instead of npm for this project.
-
-If pnpm is not installed:
-
-npm install -g pnpm
-
-Or with supported Node installations using Corepack:
-
-corepack enable
-
-16. Frontend environment
+```
 
 Create:
 
-Frontend/.env.local
+```text
+frontend/.env.local
+```
 
-The easiest option is:
+with:
 
-copy .env.example .env.local
-
-It should contain:
-
+```env
 NEXT_PUBLIC_API_BASE_URL=http://localhost:8000/api/v1
+```
 
-Important
+Then start Next.js:
 
-If .env.local is created or changed while Next.js is already running, stop Next.js and restart it. Next.js loads environment variables when the development server starts.
-
-17. Run the frontend
-
-From Frontend:
-
+```powershell
 pnpm dev
+```
 
 Open:
 
+```text
 http://localhost:3000
+```
 
-Production-style check:
+---
 
-pnpm build
-pnpm start
+# 10. Recommended terminal layout
 
-18. Recommended three-terminal workflow
+You'll effectively have three processes running:
 
-Terminal 1 — PostgreSQL / Redis
+### Terminal 1 — Infrastructure
 
-These can be Windows services or Docker containers. Keep them running.
+```powershell
+docker compose up -d
+```
 
-Terminal 2 — Backend
+### Terminal 2 — Backend
 
-cd Backend
-venv\Scripts\Activate.ps1
-python -m uvicorn app.main:app --reload --port 8000
+```powershell
+cd backend
+.venv\Scripts\Activate.ps1
+uvicorn app.main:app --reload --port 8000
+```
 
-Terminal 3 — Frontend
+### Terminal 3 — Frontend
 
-cd Frontend
+```powershell
+cd frontend
 pnpm dev
-
-Then the local system is:
-
-Frontend   http://localhost:3000
-Backend    http://localhost:8000
-PostgreSQL localhost:5432
-Redis      localhost:6379
-
-19. Authentication flow
-
-The backend provides:
-
-POST /api/v1/auth/register
-POST /api/v1/auth/login
-POST /api/v1/auth/refresh
-POST /api/v1/auth/logout
-GET  /api/v1/auth/me
-
-Registration creates:
-
-User
-Organization
-OrganizationMembership
-
-The backend uses:
-
-short-lived JWT access tokens
-
-long-lived opaque refresh tokens
-
-SHA-256 hashes of refresh tokens in PostgreSQL
-
-refresh-token rotation
-
-password hashing with Passlib/Bcrypt
-
-The frontend API client automatically attaches the access token and attempts refresh when it receives a 401 response.
-
-20. Email analysis flow
-
-The frontend/backend pipeline accepts email files compatible with the current UI, including:
-
-.eml
-.txt
-.nine
-
-The current upload limit is 5 MB.
-
-Main endpoints:
-
-POST /api/v1/emails
-GET  /api/v1/emails/{email_id}
-POST /api/v1/emails/{email_id}/analyze
-
-The backend stores parsed message data and creates analysis records.
-
-The analysis engine performs:
-
-SPF analysis
-
-DKIM analysis
-
-DMARC analysis
-
-Reply-To mismatch detection
-
-Received-header IP extraction
-
-URL extraction
-
-domain extraction
-
-public IP extraction
-
-email/hash extraction
-
-risky attachment metadata handling
-
-social-engineering signal detection
-
-explainable risk scoring
-
-21. Threat intelligence
-
-The threat-intelligence service supports:
-
-VirusTotal
-
-Supports IP, domain, URL and hash lookups.
-
-AbuseIPDB
-
-Supports IP reputation lookups.
-
-urlscan.io
-
-Provides URL/domain search and contextual observations.
-
-Redis cache
-
-Normalized threat-intel results are cached in Redis to reduce repeated external requests.
-
-Important design rule
-
-Threat-intelligence providers are evidence sources, not unquestionable truth.
-
-Examples:
-
-a malicious result can raise risk when the evidence is strong
-
-conflicting providers remain visible in enrichment
-
-Unknown results do not automatically mean malicious
-
-provider failure does not automatically mean malicious
-
-urlscan contextual observations do not independently declare an IOC malicious
-
-22. AI analysis
-
-The AI layer receives structured security evidence produced by the deterministic analyzer and threat-intelligence layer.
-
-This avoids making the model blindly judge raw email content without evidence.
-
-The AI pipeline can contribute:
-
-AI risk assessment
-
-confidence
-
-contextual reasoning
-
-additional findings
-
-recommended analyst actions
-
-AI results are fused conservatively with deterministic/security evidence rather than blindly overwriting stronger security signals.
-
-23. AI SOC Analyst
-
-The backend exposes:
-
-POST /api/v1/ai/chat
-
-The frontend AI SOC Analyst sends:
-
-the selected investigation/email ID
-
-the user's question
-
-bounded conversation history
-
-The backend retrieves the investigation context and gives the analyst model structured evidence such as:
-
-email metadata
-
-analysis result
-
-risk/severity
-
-deterministic findings
-
-TI-enriched indicators
-
-MITRE mappings
-
-AI analysis metadata
-
-The chat is therefore investigation-aware, not just a generic chatbot.
-
-A typical test question is:
-
-Analyze the current investigation and explain the strongest phishing indicators.
-
-Another useful test:
-
-What IOCs were observed in this investigation?
-
-24. Frontend pages/features
-
-The frontend currently contains the public product pages, authentication UI, dashboard and security analysis UI.
-
-Important areas include:
-
-/
-/about
-/pricing
-/signin
-/dashboard
-/dashboard/[section]
-
-The dashboard UI includes areas for:
-
-Dashboard
-
-Email Analysis
-
-Investigations
-
-Threat Intelligence
-
-Forensic Timeline
-
-Reports
-
-Settings
-
-AI SOC Analyst
-
-25. First end-to-end test
-
-After PostgreSQL, Redis, FastAPI and Next.js are running:
-
-A. Check backend
-
-http://localhost:8000/api/v1/health/ready
-
-B. Open frontend
-
-http://localhost:3000
-
-C. Create an account
-
-Go to the sign-in/register page and create a test workspace.
-
-D. Login
-
-Use the same credentials.
-
-E. Upload a synthetic test email
-
-Use a harmless local .eml test file. Example:
-
-From: Security Team <security@example.com>
-To: analyst@example.com
-Subject: Urgent account verification
-Authentication-Results: mx.example.com; spf=fail; dkim=fail; dmarc=fail;
-Reply-To: attacker@different-example.com
-
-Hello,
-
-Your account requires urgent verification.
-
-Please visit:
-https://example.com/verify
-
-Regards,
-Security Team
-
-Do not use a real malicious URL as a test target.
-
-F. Run analysis
-
-Confirm that the backend produces:
-
-risk score
-
-severity
-
-verdict
-
-authentication results
-
-findings
-
-indicators
-
-MITRE mappings when applicable
-
-AI analysis when AI is configured
-
-G. Test AI SOC Analyst
-
-Select the investigation and ask:
-
-Summarize this investigation and explain the strongest indicators.
-
-Then ask:
-
-What IOCs were observed?
-
-The responses should refer to the selected investigation.
-
-26. Useful API testing sequence
-
-A simple backend-only test order is:
-
-GET  /api/v1/health/live
-GET  /api/v1/health/ready
-POST /api/v1/auth/register
-POST /api/v1/auth/login
-GET  /api/v1/auth/me
-POST /api/v1/emails
-POST /api/v1/emails/{id}/analyze
-GET  /api/v1/emails/{id}
-POST /api/v1/ai/chat
-POST /api/v1/auth/logout
-
-Swagger is available at:
-
-http://localhost:8000/docs
-
-Use Swagger when you want to test the backend without depending on the frontend.
-
-27. Common problems and fixes
-
-ModuleNotFoundError: No module named 'app'
-
-Run commands from the Backend directory and prefer:
-
-python -m pytest
-
-The Alembic environment includes a project-root path fix so:
-
-alembic upgrade head
-
-works when launched from the backend directory.
-
-async def functions are not natively supported
-
-Install:
-
-pip install pytest-asyncio
+```
 
 Then:
 
-python -m pytest
+```text
+Browser
+   │
+   ▼
+Next.js :3000
+   │
+   ▼
+FastAPI :8000
+   │
+   ├── PostgreSQL :5432
+   ├── Redis :6379
+   ├── AI Provider
+   └── Threat Intelligence APIs
+```
 
-FATAL: password authentication failed for user "postgres"
+## 11. Quick verification
 
-PostgreSQL is reachable, but POSTGRES_PASSWORD in Backend/.env does not match the password configured for the PostgreSQL user.
+After everything is running:
 
-Fix the password in PostgreSQL/pgAdmin and update .env.
+```powershell
+curl http://localhost:8000/api/v1/health/live
+```
 
-Do not confuse a Docker PostgreSQL password with the password for an already-running local PostgreSQL service.
+Then:
 
-connection to server at localhost, port 5432 failed
+```powershell
+curl http://localhost:8000/api/v1/health/ready
+```
 
-Check:
+The second endpoint should report that PostgreSQL and Redis are available.
 
-Get-Service *postgres*
-Test-NetConnection localhost -Port 5432
+For backend tests:
 
-Make sure PostgreSQL is running and no second PostgreSQL instance is competing for the same port.
+```powershell
+cd backend
+.venv\Scripts\Activate.ps1
+pytest
+```
 
-Redis connection failure
+For frontend:
 
-Check:
+```powershell
+cd frontend
+pnpm build
+```
 
-Test-NetConnection localhost -Port 6379
+---
 
-If Redis is not running and Docker is available:
+## One important thing
 
-docker run --name mail-sentinel-redis -p 6379:6379 -d redis:7
+You **do not need to separately install PostgreSQL, Redis, or the Python packages globally**. Docker handles PostgreSQL/Redis, and the Python virtual environment handles the backend packages. Likewise, `pnpm install` handles the entire frontend dependency tree.
 
-Frontend says Unable to reach the Mail Sentinel backend
+So the practical setup is:
 
-Check that FastAPI is running on port 8000 and that:
+```powershell
+# infrastructure
+docker compose up -d
 
-Frontend/.env.local
-
-contains:
-
-NEXT_PUBLIC_API_BASE_URL=http://localhost:8000/api/v1
-
-If .env.local was created or changed while Next.js was already running, restart it:
-
-Ctrl+C
-pnpm dev
-
-Browser hydration warning
-
-A browser extension that modifies form inputs before React hydrates can cause a Next.js hydration warning.
-
-For example, password managers/autofill/security extensions may inject styles or controls into email/password inputs.
-
-To distinguish application problems from extension interference, test in a private/incognito window with extensions disabled.
-
-If the warning disappears there, inspect browser extensions before changing React code.
-
-Alembic / Psycopg async issues on Windows
-
-Keep the Windows selector-event-loop configuration in:
-
-Backend/alembic/env.py
-
-The migration environment is intentionally configured for Windows + async Psycopg.
-
-28. Security notes
-
-This is a security product, so treat local development secrets seriously.
-
-Do not commit:
-
-.env
-.env.local
-API keys
-JWT secrets
-PostgreSQL passwords
-Redis passwords
-provider credentials
-real emails containing sensitive data
-
-Do not put real credentials in source code or README examples.
-
-For production deployment, also add proper:
-
-secret management
-
-HTTPS
-
-secure cookie/token strategy
-
-rate limiting
-
-audit logging
-
-background job execution
-
-object storage for original email bytes/attachments
-
-malware/sandbox analysis
-
-production CORS allowlist
-
-production database backups
-
-monitoring/observability
-
-The current repository is a strong development foundation, but a production deployment still requires operational hardening.
-
-29. Development philosophy
-
-The backend intentionally separates:
-
-Deterministic evidence
-        +
-Threat intelligence
-        +
-AI reasoning
-        =
-Conservative security assessment
-
-AI is not treated as an unquestionable source of truth.
-
-Likewise, a single reputation provider does not automatically define the final verdict without considering the rest of the evidence.
-
-This design is important for explainability, debugging and SOC workflows.
-
-30. Quick-start summary
-
-If all prerequisites are already installed, the shortest setup is:
-
-Terminal 1 — infrastructure
-
-Make sure PostgreSQL and Redis are running.
-
-Terminal 2 — backend
-
-cd Backend
-python -m venv venv
-venv\Scripts\Activate.ps1
+# backend
+cd backend
+python -m venv .venv
+.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-pip install pytest-asyncio
 copy .env.example .env
-# edit .env
 alembic upgrade head
-python -m pytest
-python -m uvicorn app.main:app --reload --port 8000
+uvicorn app.main:app --reload --port 8000
 
-Terminal 3 — frontend
-
-cd Frontend
+# frontend (new terminal)
+cd frontend
 pnpm install
-copy .env.example .env.local
 pnpm dev
+```
 
-Then open:
-
-http://localhost:3000
-
-Backend docs:
-
-http://localhost:8000/docs
-
-Backend readiness:
-
-http://localhost:8000/api/v1/health/ready
-
-31. Current validation status
-
-During development and local integration testing, the backend unit suite reached:
-
-10 passed
-
-The following infrastructure layers were also verified in the development environment:
-
-PostgreSQL connectivity     ✅
-PostgreSQL migrations       ✅
-Redis connectivity          ✅
-FastAPI startup             ✅
-Backend unit tests          ✅
-Next.js development server  ✅
-Frontend ↔ backend client    ✅
-
-A browser-extension-induced hydration warning was also reproduced in a normal browser session and disappeared in a private window with extensions disabled, indicating extension interference rather than an application hydration defect.
-
-32. Credits / project notes
-
-Mail Sentinel 2.0 was developed as an AI-assisted email security and SOC platform with a strong emphasis on explainable analysis, evidence preservation, threat-intelligence enrichment and investigation-aware AI assistance.
-
-For future contributors, read this README first, then inspect:
-
-Backend/app/security/
-Backend/app/services/
-Backend/app/threat_intel/
-Backend/app/ai/
-Frontend/lib/api.ts
-Frontend/components/ai-chat-drawer.tsx
-
-When changing security-sensitive code, run the full backend test suite before committing.
+The only external credentials you need to add yourself are the **AI API key** and, optionally, the **VirusTotal/AbuseIPDB/urlscan API keys**.
