@@ -1,11 +1,153 @@
-.htaccess
-css.php
-rpc/
-sites/site*/admin/
-sites/site*/private/
-sites/site*/public/admin/
-sites/site*/public/setup/
-sites/site*/public/theme/
-textpattern/
-HISTORY.txt
-README.txt
+# =========================================================
+# Mail Sentinel 2.0 - Root Git Ignore
+# =========================================================
+
+# ---------------------------------------------------------
+# Environment / secrets
+# ---------------------------------------------------------
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Local credentials / secrets
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+secrets/
+credentials/
+
+# ---------------------------------------------------------
+# Python / FastAPI backend
+# ---------------------------------------------------------
+Backend/venv/
+Backend/.venv/
+Backend/__pycache__/
+Backend/**/__pycache__/
+Backend/*.py[cod]
+Backend/**/*.py[cod]
+
+# Pytest
+Backend/.pytest_cache/
+Backend/**/.pytest_cache/
+
+# Coverage
+Backend/.coverage
+Backend/.coverage.*
+Backend/htmlcov/
+Backend/coverage.xml
+
+# Mypy / Ruff / other tooling caches
+Backend/.mypy_cache/
+Backend/.ruff_cache/
+Backend/.hypothesis/
+
+# Python build artifacts
+Backend/build/
+Backend/dist/
+Backend/*.egg-info/
+Backend/**.egg-info/
+
+# ---------------------------------------------------------
+# Node / Next.js frontend
+# ---------------------------------------------------------
+Frontend/node_modules/
+Frontend/.next/
+Frontend/out/
+
+# Next.js generated files
+Frontend/.vercel/
+
+# Frontend local environment
+Frontend/.env
+Frontend/.env.local
+Frontend/.env.development.local
+Frontend/.env.test.local
+Frontend/.env.production.local
+
+# npm
+Frontend/npm-debug.log*
+Frontend/yarn-debug.log*
+Frontend/yarn-error.log*
+Frontend/pnpm-debug.log*
+Frontend/.pnpm-debug.log*
+
+# ---------------------------------------------------------
+# Test / build / cache files
+# ---------------------------------------------------------
+**/node_modules/
+**/.next/
+**/dist/
+**/build/
+**/coverage/
+**/.cache/
+**/.turbo/
+
+# ---------------------------------------------------------
+# IDE / editor files
+# ---------------------------------------------------------
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ---------------------------------------------------------
+# OS-generated files
+# ---------------------------------------------------------
+ehthumbs.db
+Desktop.ini
+
+# ---------------------------------------------------------
+# Logs
+# ---------------------------------------------------------
+*.log
+logs/
+
+# ---------------------------------------------------------
+# Temporary files
+# ---------------------------------------------------------
+*.tmp
+*.temp
+*.bak
+*.orig
+
+# ---------------------------------------------------------
+# Archives generated locally
+# ---------------------------------------------------------
+*.zip
+*.tar
+*.tar.gz
+*.7z
+
+# ---------------------------------------------------------
+# Local database / runtime files
+# ---------------------------------------------------------
+*.sqlite
+*.sqlite3
+*.db
+
+# ---------------------------------------------------------
+# Alembic / application runtime artifacts
+# ---------------------------------------------------------
+Backend/.alembic/
+Backend/storage/
+Backend/uploads/
+Backend/tmp/
+
+# ---------------------------------------------------------
+# Local generated reports / exports
+# ---------------------------------------------------------
+Backend/reports/
+Backend/exports/
+
+# ---------------------------------------------------------
+# Docker local state
+# ---------------------------------------------------------
+docker-data/
+postgres-data/
+redis-data/
